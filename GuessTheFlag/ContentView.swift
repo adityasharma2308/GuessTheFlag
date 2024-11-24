@@ -7,13 +7,20 @@
 
 import SwiftUI
 
+struct GameState{
+    var showingAlert=false
+    var showMessage=""
+    var score=0
+    var number=0
+    var showFinalScore=false
+    var showFinalMessage=""
+}
+
 struct ContentView: View {
     @State var countries=["Estonia","France","Germany","Ireland","Italy","Nigeria","Poland","Spain","UK","Ukraine","US"]
         .shuffled()
     @State var correctAnswers=Int.random(in: 0...2)
-    @State private var showingAlert=false
-    @State private var showMessage=""
-    @State private var score=0
+    @State private var gameState=GameState()
     
     var body: some View {
         ZStack{
@@ -27,6 +34,13 @@ struct ContentView: View {
                 Text("Guess The Flag")
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(.white )
+                Text("Question Number: \(gameState.number+1)/8")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal)
+                    .background(.regularMaterial)
+                    .clipShape(.rect(cornerRadius: 10))
+           
                 VStack(spacing:15){
                     VStack{
                         Text("Tap the flag of")
@@ -55,37 +69,61 @@ struct ContentView: View {
                 .clipShape(.rect(cornerRadius: 20))
                 Spacer()
                 Spacer()
-                Text("Score is \(score)")
+                Text("Score is \(gameState.score)")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
                 Spacer()
             }
             .padding()
         }
-        .alert(showMessage,isPresented: $showingAlert){
+        .alert(gameState.showFinalMessage, isPresented: $gameState.showFinalScore){
+            Button("Continue",action: askQuestion)
+        } message: {
+            Text("\(gameState.score)")
+        }
+        .alert(gameState.showMessage,isPresented: $gameState.showingAlert){
             Button("Continue",action: askQuestion)
             Button("Reset",role: .cancel,action:resetScore )
         } message: {
-            Text("Your Score Is \(score)")
+            Text("Your Score Is \(gameState.score)")
         }
         
     }
     func resetScore(){
-        score=0
+        gameState.score=0
+        gameState.number=0
     }
-    func checkAnswer(_ number:Int){
-        if number==correctAnswers{
-            showMessage="correct"
-            score+=1
+    
+    func checkNumberQuestion(){
+        if(gameState.number==8){
+            gameState.showFinalMessage="Your Final Score Is"
+            gameState.showFinalScore=true
+            gameState.showingAlert=false
         }
         else{
-            showMessage="Wrong"
+            gameState.showingAlert=true
         }
-        showingAlert=true
+    }
+    
+    func checkAnswer(_ numbers:Int){
+        
+        if numbers==correctAnswers{
+            gameState.showMessage="correct"
+            gameState.score+=1
+        }
+        else{
+            gameState.showMessage="Wrong That's the Flag of \(countries[numbers])"
+        }
+        gameState.number+=1
+        checkNumberQuestion()
     }
     func askQuestion(){
         countries.shuffle()
         correctAnswers=Int.random(in: 0...2)
+        if gameState.showFinalScore{
+            resetScore()
+            gameState.showFinalScore=false
+        }
     }
 }
 #Preview {
