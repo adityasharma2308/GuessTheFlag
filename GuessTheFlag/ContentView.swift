@@ -16,6 +16,25 @@ struct GameState{
     var showFinalMessage=""
 }
 
+struct questionNumber: ViewModifier{
+    var number: String
+    func body(content: Content) -> some View {
+        ZStack(alignment: .bottomTrailing){
+            content
+            Text("\(number)/8")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(20)
+        }
+    }
+}
+
+extension View{
+    func questionNumberd(with number: String) -> some View{
+        modifier(questionNumber(number: number))
+    }
+}
+
 struct ContentView: View {
     @State var countries=["Estonia","France","Germany","Ireland","Italy","Nigeria","Poland","Spain","UK","Ukraine","US"]
         .shuffled()
@@ -50,15 +69,12 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                             .font(.largeTitle.weight(.semibold))
                     }
-                    
                     ForEach(0..<3){ number in
                         Button{
                             checkAnswer(number)
                         }
                         label:{
-                            Image(countries[number])
-                                .clipShape(.capsule)
-                                .shadow(radius: 5)
+                            FlagImage(country: countries[number])
                         }
                     }
                     
@@ -67,6 +83,7 @@ struct ContentView: View {
                 .padding(.vertical,20)
                 .background(.regularMaterial)
                 .clipShape(.rect(cornerRadius: 20))
+                .questionNumberd(with: "\(gameState.number+1)")
                 Spacer()
                 Spacer()
                 Text("Score is \(gameState.score)")
@@ -89,6 +106,16 @@ struct ContentView: View {
         }
         
     }
+    
+    struct FlagImage: View {
+        var country: String
+        var body: some View {
+            Image(country)
+                .clipShape(Capsule())
+                .shadow(radius: 5)
+        }
+    }
+    
     func resetScore(){
         gameState.score=0
         gameState.number=0
